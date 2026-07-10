@@ -1,0 +1,77 @@
+{
+  "name": "blink-desktop",
+  "version": "1.0.0",
+  "description": "Blink - 桌面版",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "cross-env ELECTRON_DEV=1 electron .",
+    "build:win": "electron-builder --win --x64",
+    "build:mac": "electron-builder --mac --arm64 --x64",
+    "build:linux": "electron-builder --linux --x64"
+  },
+  "build": {
+    "appId": "com.blink.app",
+    "productName": "Blink",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "../app",
+        "to": "app",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../pyproject.toml",
+        "to": "pyproject.toml"
+      },
+      {
+        "from": "../.env",
+        "to": ".env",
+        "optional": true
+      },
+      {
+        "from": "../static",
+        "to": "static",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../data",
+        "to": "data",
+        "filter": ["**/*"],
+        "optional": true
+      }
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "build/icon.ico"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "build/icon.icns"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Blink"
+    }
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3",
+    "cross-env": "^7.0.3"
+  }
+}

@@ -1,0 +1,50 @@
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: aicontent
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI 应用
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/aicontent
+      POSTGRES_URI: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/aicontent
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://ark.cn-beijing.volces.com/api/v3}
+      LLM_MODEL: ${LLM_MODEL:-doubao-seed-1-8-251228}
+      LLM_MODEL_FAST: ${LLM_MODEL_FAST:-doubao-seed-1-6-flash-250828}
+      IMAGE_API_KEY: ${IMAGE_API_KEY}
+      IMAGE_BASE_URL: ${IMAGE_BASE_URL:-https://cn-beijing.yuannengai.com}
+      IMAGE_MODEL: ${IMAGE_MODEL:-gemini-3-pro-image-preview}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY}
+      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-https://api.siliconflow.cn/v1}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-m3}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?必须设置JWT_SECRET_KEY}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:8000}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./static/images/generated:/app/static/images/generated
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

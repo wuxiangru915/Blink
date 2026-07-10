@@ -1,0 +1,19 @@
+{
+  "name": "blink",
+  "version": "1.0.0",
+  "description": "Blink - Electron 桌面版",
+  "private": true,
+  "scripts": {
+    "dev": "node electron/scripts/start.js dev",
+    "start": "node electron/scripts/start.js start",
+    "fast": "node electron/scripts/start.js fast",
+    "build": "node electron/scripts/start.js build",
+    "build:win": "cd electron && npx electron-builder --win --x64",
+    "build:mac": "cd electron && npx electron-builder --mac",
+    "build:linux": "cd electron && npx electron-builder --linux --x64",
+    "frontend:dev": "cd frontend && npm run dev",
+    "frontend:build": "cd frontend && npm run build",
+    "backend:dev": "python -m uvicorn app.main:app --host 127.0.0.1 --port 8080 --reload",
+    "postinstall": "cd electron && npm install && cd ../frontend && npm install"
+  }
+}
