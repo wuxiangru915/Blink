@@ -65,7 +65,7 @@ Blink is an end-to-end AI content operations system that introduces human review
 | Desktop Wrapper | Electron |
 | LLM Service | Volcengine Doubao (standard model + fast model) |
 | Embedding | SiliconFlow (BAAI/bge-m3) |
-| Image Generation | Gemini (gemini-3-pro-image-preview) |
+| Image Generation | OpenAI-compatible Image API (configurable model) |
 | Authentication | JWT (argon2 + bcrypt) |
 | Logging | structlog (with PII anonymization) |
 | Tracing | LangSmith |
@@ -125,7 +125,7 @@ Blink/
 - The following API Keys (at least LLM_API_KEY):
   - Volcengine Doubao API Key
   - SiliconFlow API Key (required for RAG)
-  - Gemini image generation API Key (required for image generation)
+  - Image generation API Key (required for image generation, any OpenAI-compatible service)
 
 ### Option 1: Docker Compose (Recommended)
 
@@ -206,7 +206,7 @@ npm run build:linux  # Linux
 | `LLM_MODEL` | Standard model (article writing) | No |
 | `LLM_MODEL_FAST` | Fast model (topic generation, extraction) | No |
 | `EMBEDDING_API_KEY` | SiliconFlow Embedding API Key | Required for RAG |
-| `IMAGE_API_KEY` | Gemini image generation API Key | Required for images |
+| `IMAGE_API_KEY` | Image generation API Key | Required for images |
 | `LANGCHAIN_API_KEY` | LangSmith API Key (tracing) | No |
 | `CORS_ORIGINS` | Allowed frontend origins | No |
 

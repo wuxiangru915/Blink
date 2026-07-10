@@ -65,7 +65,7 @@ Blink 是一个端到端的 AI 内容运营系统，在关键决策节点引入�
 | 桌面封装 | Electron |
 | LLM 服务 | 火山引擎 Doubao (标准模型 + 快速模型) |
 | Embedding | SiliconFlow (BAAI/bge-m3) |
-| 图片生成 | Gemini (gemini-3-pro-image-preview) |
+| 图片生成 | OpenAI 兼容图片生成 API (模型可配置) |
 | 认证 | JWT (argon2 + bcrypt) |
 | 日志 | structlog (支持 PII 脱敏) |
 | 监控追踪 | LangSmith |
@@ -125,7 +125,7 @@ Blink/
 - 以下 API Key（至少 LLM_API_KEY）：
   - 火山引擎 Doubao API Key
   - SiliconFlow API Key（RAG 功能需要）
-  - Gemini 图片生成 API Key（配图功能需要）
+  - 图片生成 API Key（配图功能需要，支持任意 OpenAI 兼容图片生成服务）
 
 ### 方式一：Docker Compose（推荐）
 
@@ -206,7 +206,7 @@ npm run build:linux  # Linux
 | `LLM_MODEL` | 标准模型（文章写作） | 否 |
 | `LLM_MODEL_FAST` | 快速模型（选题、提取） | 否 |
 | `EMBEDDING_API_KEY` | SiliconFlow Embedding API Key | RAG 功能需要 |
-| `IMAGE_API_KEY` | Gemini 图片生成 API Key | 配图功能需要 |
+| `IMAGE_API_KEY` | 图片生成 API Key | 配图功能需要 |
 | `LANGCHAIN_API_KEY` | LangSmith API Key（追踪监控） | 否 |
 | `CORS_ORIGINS` | 允许的前端来源 | 否 |
 
