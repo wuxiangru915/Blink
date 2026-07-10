@@ -72,6 +72,34 @@ Blink is an end-to-end AI content operations system that introduces human review
 
 ---
 
+## Workflow Diagram
+
+```mermaid
+flowchart TD
+    Start([User inputs theme direction]) --> PlanTopics[AI generates candidate topics]
+    PlanTopics --> Interrupt1{{Interrupt: Waiting for topic selection}}
+    Interrupt1 -->|Select topic| Retrieve[RAG retrieves reference material]
+    Retrieve --> WriteDraft[AI writes article draft]
+    WriteDraft --> Evaluate[AI quality evaluation scoring]
+    Evaluate --> Interrupt2{{Interrupt: Waiting for human review}}
+    Interrupt2 -->|Reject + Feedback| WriteDraft
+    Interrupt2 -->|Approve| ExtractVisuals[AI extracts visual points]
+    ExtractVisuals --> GenerateImages[Generate illustrations]
+    GenerateImages --> Done([Workflow complete])
+```
+
+### Topic Selection Subgraph
+
+```mermaid
+flowchart TD
+    SubStart([Subgraph start]) --> PlanTopics[AI generates 5 candidate topics]
+    PlanTopics --> Interrupt{{Interrupt: Waiting for user selection}}
+    Interrupt -->|User selects| UpdateState[Update topic state]
+    UpdateState --> SubEnd([Return to main graph])
+```
+
+---
+
 ## Project Structure
 
 ```

@@ -72,6 +72,34 @@ Blink 是一个端到端的 AI 内容运营系统，在关键决策节点引入�
 
 ---
 
+## 工作流程图
+
+```mermaid
+flowchart TD
+    Start([用户输入主题方向]) --> PlanTopics[AI 生成候选选题]
+    PlanTopics --> Interrupt1{{中断: 等待人工选题}}
+    Interrupt1 -->|选择选题| Retrieve[RAG 检索参考素材]
+    Retrieve --> WriteDraft[AI 撰写文章草稿]
+    WriteDraft --> Evaluate[AI 质量评估打分]
+    Evaluate --> Interrupt2{{中断: 等待人工审核}}
+    Interrupt2 -->|驳回 + 反馈| WriteDraft
+    Interrupt2 -->|通过| ExtractVisuals[AI 提取视觉要点]
+    ExtractVisuals --> GenerateImages[生成配图]
+    GenerateImages --> Done([工作流完成])
+```
+
+### 选题子图流程
+
+```mermaid
+flowchart TD
+    SubStart([子图开始]) --> PlanTopics[AI 生成 5 个候选选题]
+    PlanTopics --> Interrupt{{中断: 等待用户选择}}
+    Interrupt -->|用户选择| UpdateState[更新选题状态]
+    UpdateState --> SubEnd([返回主图])
+```
+
+---
+
 ## 目录结构
 
 ```
