@@ -1,4 +1,4 @@
-# Blink
+# <h1 align="center">Blink</h1>
 
 > 基于 LangGraph 1.0+ 的人机协同内容生产系统
 
