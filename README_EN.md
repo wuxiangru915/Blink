@@ -1,4 +1,4 @@
-# Blink
+# <h1 align="center">Blink</h1>
 
 > Human-in-the-loop content production system powered by LangGraph 1.0+
 
