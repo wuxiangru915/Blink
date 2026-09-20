@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blink · 人机协同内容生产 Agent 工作流</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--paper:#f5f5f5;--ink:#2d3142;--muted:#4f5d75;--soft:#7a8399;--accent:#eb6c36;--accent-tint:rgba(235,108,54,.08);--rule:rgba(45,49,66,.12);--label-rule:rgba(45,49,66,.20);--lane:rgba(45,49,66,.018);--node:#fff;--node-stroke:rgba(45,49,66,.25);--chip:rgba(45,49,66,.12);--custom:#b85450;--db:#5e7a9b;--ls:#7c8f6f;--fl:#9c6b50;--wb:#6e6479;--sans:'Geist',system-ui,sans-serif;--serif:'Instrument Serif',serif;--mono:'Geist Mono',ui-monospace,monospace}
+    body{font-family:var(--sans);background:var(--paper);color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:3rem 2rem}
+    .frame{max-width:1240px;width:100%}.eyebrow{font:500 .66rem var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}h1{font:400 clamp(1.5rem,2.4vw + .75rem,2rem)/1.15 var(--serif);letter-spacing:-.02em;margin-bottom:.4rem}.subtitle{font-size:.92rem;color:var(--muted);margin-bottom:1.5rem}svg{width:100%;min-width:1040px;display:block}
+    svg text{font-family:var(--sans)}.mono{font-family:var(--mono)}.lane{fill:var(--lane)}.rule{stroke:var(--rule)}.label-rule{stroke:var(--label-rule)}.actor{fill:var(--muted);font:500 8px var(--mono);letter-spacing:.08em}.step-label{fill:var(--muted);font:500 6px var(--mono);letter-spacing:.12em}.step-chip{fill:var(--chip)}.step-num{fill:var(--ink);font:600 7px var(--mono)}.connector{fill:none;stroke:var(--muted);stroke-width:1}.connector.focal{stroke:var(--accent);stroke-width:1.2}.connector.trigger{stroke:var(--muted);stroke-width:1;stroke-dasharray:4,3}.node-mask{fill:var(--paper)}.node{fill:var(--node);stroke:var(--node-stroke)}.node.focal{fill:var(--accent-tint);stroke:var(--accent);stroke-width:1.2}.node.custom{fill:rgba(184,84,80,.06);stroke:rgba(184,84,80,.35)}.role{fill:rgba(45,49,66,.10)}.role.focal{fill:rgba(235,108,54,.25)}.role.custom{fill:rgba(184,84,80,.18)}.role-text{fill:var(--ink);font:600 6px var(--mono)}.role-text.focal{fill:var(--accent)}.role-text.custom{fill:var(--custom)}.node-title{fill:var(--ink);font:600 9px var(--sans)}.node-title.custom{fill:var(--custom)}.node-sub{fill:var(--muted);font:6.5px var(--mono)}.node-tool{fill:var(--soft);font:6.5px var(--mono)}.data-text{fill:white;font:700 5px var(--mono)}.legend-key{fill:var(--muted);font:500 7px var(--mono);letter-spacing:.12em}.legend-text{fill:var(--muted);font:8px var(--sans)}.arrow-label{fill:var(--muted);font:8px var(--mono)}
+    .callout{font-family:var(--serif);font-style:italic;fill:var(--ink);font-size:14px}.callout.focal{fill:var(--accent)}.leader{fill:none;stroke:rgba(45,49,66,.40);stroke-width:1;stroke-dasharray:4,3}.leader.focal{stroke:rgba(235,108,54,.50)}.dot{fill:var(--ink)}.dot.focal{fill:var(--accent)}
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Process · LangGraph 1.0 · Human-in-the-Loop</p>
+    <h1>Blink — Human-in-the-Loop Content Workflow</h1>
+    <p class="subtitle">人机协同内容生产 Agent 系统 · 双 interrupt 决策点 · PostgreSQL 状态落库 · RAG 检索增强 · 三档模型路由</p>
+    <svg viewBox="0 0 1176 432" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="blink-workflow-title blink-workflow-desc">
+      <title id="blink-workflow-title">Blink 人机协同内容生产 Agent 工作流</title>
+      <desc id="blink-workflow-desc">流程图展示 Blink 系统从用户输入主题方向到内容交付的完整运行链路：AI 生成选题、RAG 检索、文章写作、质量评估与配图生成，两处 interrupt 中断点分别由人工选题与人工审核把控，审核驳回时带反馈回到写作节点重写。</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4f5d75"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eb6c36"/></marker>
+        <marker id="arrow-sm" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto"><polygon points="0 0,6 2.5,0 5" fill="#4f5d75"/></marker>
+      </defs>
+      <rect width="1176" height="432" fill="#f5f5f5"/>
+      <!-- Lane tints (odd lanes 0,2) -->
+      <rect class="lane" x="140" y="92" width="1036" height="80"/><rect class="lane" x="140" y="252" width="1036" height="80"/>
+      <!-- Lane dividers + label column -->
+      <g class="rule" stroke-width=".8"><line x1="0" y1="92" x2="1176" y2="92"/><line x1="0" y1="172" x2="1176" y2="172"/><line x1="0" y1="252" x2="1176" y2="252"/><line x1="0" y1="332" x2="1176" y2="332"/></g>
+      <line class="label-rule" x1="140" y1="92" x2="140" y2="332"/>
+      <!-- Lane labels -->
+      <g class="actor" text-anchor="middle"><text x="70" y="128">USER</text><text x="70" y="136">用户</text><text x="70" y="208">AGENT</text><text x="70" y="216">AI 工作流</text><text x="70" y="288">HUMAN</text><text x="70" y="296">人工把控</text></g>
+      <!-- Step header chips + labels -->
+      <g text-anchor="middle">
+        <rect class="step-chip" x="190" y="64" width="16" height="16" rx="8"/><text class="step-num" x="198" y="75">1</text><text class="step-label" x="198" y="88">INPUT</text>
+        <rect class="step-chip" x="302" y="64" width="16" height="16" rx="8"/><text class="step-num" x="310" y="75">2</text><text class="step-label" x="310" y="88">PLAN</text>
+        <rect x="414" y="64" width="16" height="16" rx="8" fill="rgba(184,84,80,.20)"/><text x="422" y="75" fill="#b85450" font-size="7" font-weight="600" class="mono">3</text><text x="422" y="88" fill="#b85450" font-size="6" font-weight="500" letter-spacing=".12em" class="mono">SELECT</text>
+        <rect class="step-chip" x="526" y="64" width="16" height="16" rx="8"/><text class="step-num" x="534" y="75">4</text><text class="step-label" x="534" y="88">RETRIEVE</text>
+        <rect class="step-chip" x="638" y="64" width="16" height="16" rx="8"/><text class="step-num" x="646" y="75">5</text><text class="step-label" x="646" y="88">WRITE</text>
+        <rect class="step-chip" x="750" y="64" width="16" height="16" rx="8"/><text class="step-num" x="758" y="75">6</text><text class="step-label" x="758" y="88">EVALUATE</text>
+        <rect x="862" y="64" width="16" height="16" rx="8" fill="rgba(235,108,54,.20)"/><text x="870" y="75" fill="#eb6c36" font-size="7" font-weight="600" class="mono">7</text><text x="870" y="88" fill="#eb6c36" font-size="6" font-weight="500" letter-spacing=".12em" class="mono">REVIEW</text>
+        <rect class="step-chip" x="974" y="64" width="16" height="16" rx="8"/><text class="step-num" x="982" y="75">8</text><text class="step-label" x="982" y="88">VISUAL</text>
+        <rect class="step-chip" x="1086" y="64" width="16" height="16" rx="8"/><text class="step-num" x="1094" y="75">9</text><text class="step-label" x="1094" y="88">DELIVER</text>
+      </g>
+      <!-- Connectors (drawn before nodes) -->
+      <path class="connector" d="M248 132 H302 Q310 132 310 140 V180" marker-end="url(#arrow)"/>
+      <path class="connector" d="M360 212 H414 Q422 212 422 220 V260" marker-end="url(#arrow)"/>
+      <path class="connector" d="M472 292 H526 Q534 292 534 284 V244" marker-end="url(#arrow)"/>
+      <line class="connector" x1="584" y1="212" x2="596" y2="212" marker-end="url(#arrow)"/>
+      <line class="connector" x1="696" y1="212" x2="708" y2="212" marker-end="url(#arrow)"/>
+      <path class="connector focal" d="M808 212 H862 Q870 212 870 220 V260" marker-end="url(#arrow-accent)"/>
+      <path class="connector focal" d="M920 292 H974 Q982 292 982 284 V244" marker-end="url(#arrow-accent)"/>
+      <path class="connector" d="M1032 212 H1086 Q1094 212 1094 204 V164" marker-end="url(#arrow)"/>
+      <!-- Reject rewrite loop (trigger) -->
+      <path class="connector trigger" d="M820 300 H596 V224" marker-end="url(#arrow-sm)"/>
+      <rect x="640" y="278" width="72" height="12" rx="2" fill="#f5f5f5"/>
+      <text class="arrow-label" x="676" y="288" text-anchor="middle">驳回 + 反馈</text>
+      <!-- Nodes -->
+      <g text-anchor="middle">
+        <g><rect class="node-mask" x="148" y="100" width="100" height="64" rx="6"/><rect class="node" x="148" y="100" width="100" height="64" rx="6"/><rect class="role" x="152" y="104" width="20" height="10" rx="2"/><text class="role-text" x="162" y="112">USR</text><text class="node-title" x="198" y="126">输入主题方向</text><text class="node-sub" x="198" y="140">方向 → 启动</text><text class="node-tool" x="198" y="152">FastAPI · Vue 3</text></g>
+        <g><rect class="node-mask" x="260" y="180" width="100" height="64" rx="6"/><rect class="node" x="260" y="180" width="100" height="64" rx="6"/><rect class="role" x="264" y="184" width="20" height="10" rx="2"/><text class="role-text" x="274" y="192">AGT</text><text class="node-title" x="310" y="206">AI 生成候选选题</text><text class="node-sub" x="310" y="220">选题方向 → 5 候选</text><text class="node-tool" x="310" y="232">fast 模型 · 结构化输出</text><rect x="340" y="234" width="16" height="8" rx="2" fill="#7c8f6f"/><text class="data-text" x="348" y="240">LS</text></g>
+        <g><rect class="node-mask" x="372" y="260" width="100" height="64" rx="6"/><rect class="node custom" x="372" y="260" width="100" height="64" rx="6"/><rect class="role custom" x="376" y="264" width="20" height="10" rx="2"/><text class="role-text custom" x="386" y="272">HMN</text><text class="node-title custom" x="422" y="286">人工选题确认</text><text class="node-sub" x="422" y="300">候选 → 选定</text><text class="node-tool" x="422" y="312">interrupt() 挂起</text><rect x="376" y="314" width="16" height="8" rx="2" fill="#7c8f6f"/><text class="data-text" x="384" y="320">LS</text><rect x="452" y="314" width="16" height="8" rx="2" fill="#7c8f6f"/><text class="data-text" x="460" y="320">LS</text></g>
+        <g><rect class="node-mask" x="484" y="180" width="100" height="64" rx="6"/><rect class="node" x="484" y="180" width="100" height="64" rx="6"/><rect class="role" x="488" y="184" width="20" height="10" rx="2"/><text class="role-text" x="498" y="192">AGT</text><text class="node-title" x="534" y="206">RAG 检索增强</text><text class="node-sub" x="534" y="220">选题 → Top-3 参考</text><text class="node-tool" x="534" y="232">ChromaDB · bge-m3</text><rect x="488" y="234" width="16" height="8" rx="2" fill="#7c8f6f"/><text class="data-text" x="496" y="240">LS</text><rect x="564" y="234" width="16" height="8" rx="2" fill="#5e7a9b"/><text class="data-text" x="572" y="240">DB</text></g>
+        <g><rect class="node-mask" x="596" y="180" width="100" height="64" rx="6"/><rect class="node" x="596" y="180" width="100" height="64" rx="6"/><rect class="role" x="600" y="184" width="20" height="10" rx="2"/><text class="role-text" x="610" y="192">AGT</text><text class="node-title" x="646" y="206">AI 撰写文章</text><text class="node-sub" x="646" y="220">参考 → 文章草稿</text><text class="node-tool" x="646" y="232">standard 模型 · SSE</text><rect x="600" y="234" width="16" height="8" rx="2" fill="#5e7a9b"/><text class="data-text" x="608" y="240">DB</text><rect x="676" y="234" width="16" height="8" rx="2" fill="#9c6b50"/><text class="data-text" x="684" y="240">FL</text></g>
+        <g><rect class="node-mask" x="708" y="180" width="100" height="64" rx="6"/><rect class="node" x="708" y="180" width="100" height="64" rx="6"/><rect class="role" x="712" y="184" width="20" height="10" rx="2"/><text class="role-text" x="722" y="192">AGT</text><text class="node-title" x="758" y="206">AI 质量评估</text><text class="node-sub" x="758" y="220">文章 → 多维评分</text><text class="node-tool" x="758" y="232">Pydantic 结构化</text><rect x="712" y="234" width="16" height="8" rx="2" fill="#9c6b50"/><text class="data-text" x="720" y="240">FL</text><rect x="788" y="234" width="16" height="8" rx="2" fill="#9c6b50"/><text class="data-text" x="796" y="240">FL</text></g>
+        <g><rect class="node-mask" x="820" y="260" width="100" height="64" rx="6"/><rect class="node focal" x="820" y="260" width="100" height="64" rx="6"/><rect class="role focal" x="824" y="264" width="20" height="10" rx="2"/><text class="role-text focal" x="834" y="272">HMN</text><text class="node-title" x="870" y="286">人工内容审核</text><text class="node-sub" x="870" y="300">评分 + 预览 → 通过/驳回</text><text class="node-tool" x="870" y="312">interrupt() 挂起</text><rect x="824" y="314" width="16" height="8" rx="2" fill="#9c6b50"/><text class="data-text" x="832" y="320">FL</text><rect x="900" y="314" width="16" height="8" rx="2" fill="#9c6b50"/><text class="data-text" x="908" y="320">FL</text></g>
+        <g><rect class="node-mask" x="932" y="180" width="100" height="64" rx="6"/><rect class="node" x="932" y="180" width="100" height="64" rx="6"/><rect class="role" x="936" y="184" width="20" height="10" rx="2"/><text class="role-text" x="946" y="192">AGT</text><text class="node-title" x="982" y="206">视觉提取 + 配图</text><text class="node-sub" x="982" y="220">文章 → 要点 + 配图</text><text class="node-tool" x="982" y="232">extract 低温度 · 图片API</text><rect x="936" y="234" width="16" height="8" rx="2" fill="#9c6b50"/><text class="data-text" x="944" y="240">FL</text><rect x="1012" y="234" width="16" height="8" rx="2" fill="#6e6479"/><text class="data-text" x="1020" y="240">WB</text></g>
+        <g><rect class="node-mask" x="1044" y="100" width="100" height="64" rx="6"/><rect class="node" x="1044" y="100" width="100" height="64" rx="6"/><rect class="role" x="1048" y="104" width="20" height="10" rx="2"/><text class="role-text" x="1058" y="112">USR</text><text class="node-title" x="1094" y="126">内容交付</text><text class="node-sub" x="1094" y="140">文章 + 配图</text><text class="node-tool" x="1094" y="152">Electron · Docker</text><rect x="1048" y="154" width="16" height="8" rx="2" fill="#6e6479"/><text class="data-text" x="1056" y="160">WB</text></g>
+      </g>
+      <!-- Annotation callouts (margins) -->
+      <g>
+        <text class="callout" x="8" y="24">PII 双通道脱敏 · LangSmith 追踪 · 节点级指标</text>
+        <path class="leader" d="M280 44 Q360 64 596 200"/>
+        <circle class="dot" cx="596" cy="200" r="2"/>
+      </g>
+      <g>
+        <text class="callout focal" x="1168" y="24" text-anchor="end">双中断点 interrupt() 挂起 · Command(resume) 恢复</text>
+        <text class="callout focal" x="1168" y="40" text-anchor="end">状态落库 PostgreSQL · 跨会话断点续跑</text>
+        <path class="leader focal" d="M820 44 Q806 160 820 316"/>
+        <circle class="dot focal" cx="820" cy="316" r="2"/>
+      </g>
+      <!-- Legend -->
+      <g>
+        <text class="legend-key" x="144" y="348">STEPS</text>
+        <g text-anchor="middle">
+          <rect class="step-chip" x="208" y="340" width="16" height="16" rx="8"/><text class="step-num" x="216" y="351">1</text><text class="legend-text" x="248" y="351">INPUT</text>
+          <rect class="step-chip" x="300" y="340" width="16" height="16" rx="8"/><text class="step-num" x="308" y="351">2</text><text class="legend-text" x="340" y="351">PLAN</text>
+          <rect x="392" y="340" width="16" height="16" rx="8" fill="rgba(184,84,80,.20)"/><text x="400" y="351" fill="#b85450" font-size="7" class="mono">3</text><text x="432" y="351" fill="#b85450" font-size="8">SELECT</text>
+          <rect class="step-chip" x="484" y="340" width="16" height="16" rx="8"/><text class="step-num" x="492" y="351">4</text><text class="legend-text" x="540" y="351">RETRIEVE</text>
+          <rect class="step-chip" x="576" y="340" width="16" height="16" rx="8"/><text class="step-num" x="584" y="351">5</text><text class="legend-text" x="612" y="351">WRITE</text>
+          <rect class="step-chip" x="668" y="340" width="16" height="16" rx="8"/><text class="step-num" x="676" y="351">6</text><text class="legend-text" x="724" y="351">EVALUATE</text>
+          <rect x="760" y="340" width="16" height="16" rx="8" fill="rgba(235,108,54,.20)"/><text x="768" y="351" fill="#eb6c36" font-size="7" class="mono">7</text><text x="800" y="351" fill="#eb6c36" font-size="8">REVIEW</text>
+          <rect class="step-chip" x="852" y="340" width="16" height="16" rx="8"/><text class="step-num" x="860" y="351">8</text><text class="legend-text" x="892" y="351">VISUAL</text>
+          <rect class="step-chip" x="944" y="340" width="16" height="16" rx="8"/><text class="step-num" x="952" y="351">9</text><text class="legend-text" x="992" y="351">DELIVER</text>
+        </g>
+        <text class="legend-key" x="144" y="369">DATA TYPE</text>
+        <rect x="220" y="362" width="16" height="8" rx="2" fill="#7c8f6f"/><text class="legend-text" x="244" y="369">LS · 选题列表</text>
+        <rect x="320" y="362" width="16" height="8" rx="2" fill="#5e7a9b"/><text class="legend-text" x="344" y="369">DB · 检索文档</text>
+        <rect x="424" y="362" width="16" height="8" rx="2" fill="#9c6b50"/><text class="legend-text" x="448" y="369">FL · 文章/评分</text>
+        <rect x="548" y="362" width="16" height="8" rx="2" fill="#6e6479"/><text class="legend-text" x="572" y="369">WB · 配图</text>
+        <text class="legend-key" x="856" y="369">LEFT IN · RIGHT OUT</text>
+        <text class="legend-key" x="144" y="390">CONCERN</text>
+        <rect x="220" y="383" width="16" height="8" rx="2" fill="rgba(184,84,80,.35)"/><text class="legend-text" x="244" y="390">人工介入 · HITL 中断点（interrupt 挂起）</text>
+        <text class="legend-key" x="144" y="411">FLOW</text>
+        <line x1="200" y1="407" x2="228" y2="407" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/><text class="legend-text" x="240" y="411">关键决策 · 人工审核</text>
+        <line x1="380" y1="407" x2="408" y2="407" stroke="#4f5d75" marker-end="url(#arrow)"/><text class="legend-text" x="420" y="411">顺序交接</text>
+        <line x1="540" y1="407" x2="568" y2="407" stroke="#4f5d75" stroke-dasharray="4,3" marker-end="url(#arrow-sm)"/><text class="legend-text" x="580" y="411">驳回重写回环</text>
+      </g>
+    </svg>
+  </div>
+</body>
+</html>

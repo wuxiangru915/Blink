@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="Stage1-Workflow" id="stage1">
+    <mxGraphModel dx="0" dy="0" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <!-- Title -->
+        <mxCell id="title" value="Blink 阶段1：LangGraph 双中断工作流全链路（前端 / 后端 / 引擎 / 持久化）" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=18;fontStyle=1;fontColor=#1a1a1a;" vertex="1" parent="1">
+          <mxGeometry x="20" y="10" width="1760" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="thread_id = {user.id}_{uuid} &amp;nbsp;|&amp;nbsp;  config = { configurable: { thread_id } }  &amp;nbsp;|&amp;nbsp;  Checkpoint 统一由 AsyncPostgresSaver 持久化" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="20" y="38" width="1760" height="18" as="geometry" />
+        </mxCell>
+
+        <!-- Swimlane: Frontend -->
+        <mxCell id="sw-frontend" value="① 前端层  ·  Vue 3 + Vite + Electron  ·  src/App.vue / src/api.js" style="swimlane;startSize=30;horizontal=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;html=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="64" width="1760" height="200" as="geometry" />
+        </mxCell>
+        <!-- Frontend nodes -->
+        <mxCell id="f-start" value="用户输入&#xa;topic_direction&#xa;『AI Agent』" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;strokeWidth=2;fontSize=11;" vertex="1" parent="sw-frontend">
+          <mxGeometry x="30" y="60" width="130" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="f-btn-start" value="POST&#xa;/workflow/start&#xa;{ topic_direction }" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="sw-frontend">
+          <mxGeometry x="210" y="70" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f-card-topic" value="选题卡片&#xa;interrupt #1&#xa;action_required=select_topic&#xa;options: 5个标题" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;strokeWidth=1.5;" vertex="1" parent="sw-frontend">
+          <mxGeometry x="430" y="45" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="f-resume-topic" value="POST /resume&#xa;{ select_topic,&#xa;  selected_topic }" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="sw-frontend">
+          <mxGeometry x="670" y="70" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f-sse" value="SSE 流式渲染&#xa;llm_token 逐字&#xa;POST /stream/resume" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="sw-frontend">
+          <mxGeometry x="890" y="45" width="160" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="f-card-review" value="审稿卡片&#xa;interrupt #2&#xa;action_required=review&#xa;approve / reject + feedback" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;strokeWidth=1.5;" vertex="1" parent="sw-frontend">
+          <mxGeometry x="1120" y="45" width="180" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="f-resume-review" value="POST /resume&#xa;{ approve / reject }&#xa;或刷新配图" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="sw-frontend">
+          <mxGeometry x="1365" y="45" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="f-done" value="完成&#xa;展示文章+配图&#xa;threads 列表" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=11;" vertex="1" parent="sw-frontend">
+          <mxGeometry x="1580" y="60" width="120" height="70" as="geometry" />
+        </mxCell>
+        <!-- Frontend small note -->
+        <mxCell id="f-note" value="GET /state/{thread_id} 轮询 interrupt_info  ·  GET /threads 列表" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=10;fontColor=#6c8ebf;fontStyle=2;" vertex="1" parent="sw-frontend">
+          <mxGeometry x="430" y="145" width="420" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Swimlane: Backend FastAPI -->
+        <mxCell id="sw-backend" value="② 后端层  ·  FastAPI  ·  app/api/v1/workflow.py  ·  app/dependencies/auth.py" style="swimlane;startSize=30;horizontal=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;fontSize=12;html=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="264" width="1760" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="b-auth" value="JWT 鉴权&#xa;get_current_user()&#xa;verify_thread_owner()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="sw-backend">
+          <mxGeometry x="30" y="50" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="b-start" value="start_workflow()&#xa;thread_id = user.id_uuid&#xa;INITIAL_STATE + topic_direction" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="sw-backend">
+          <mxGeometry x="210" y="50" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="b-getgraph" value="await get_graph()&#xa;workflow.compile(&#xa;  checkpointer)&#xa;config={thread_id}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="sw-backend">
+          <mxGeometry x="430" y="50" width="160" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b-ainvoke" value="await graph.ainvoke(&#xa;  initial_input, config)&#xa;→ 遇到 interrupt 冻结" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11;strokeWidth=1.5;" vertex="1" parent="sw-backend">
+          <mxGeometry x="640" y="50" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b-command" value="Command(resume=…)&#xa;graph.ainvoke(Command, config)&#xa;从 checkpoint 恢复" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=11;strokeWidth=1.5;" vertex="1" parent="sw-backend">
+          <mxGeometry x="880" y="50" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b-state" value="aget_state(config)&#xa;extract_interrupt_info()&#xa;fix_subgraph_status()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="sw-backend">
+          <mxGeometry x="1095" y="50" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b-sse" value="stream/resume&#xa;astream_events(v2)&#xa;format_sse_event()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="sw-backend">
+          <mxGeometry x="1310" y="50" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b-threads" value="GET /threads&#xa;DELETE /threads&#xa;checkpoints 表查询" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;" vertex="1" parent="sw-backend">
+          <mxGeometry x="1505" y="50" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b-note" value="所有写操作后： updated_state = aget_state(config)  →  next_nodes / is_completed / interrupt_info / node_metrics" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=10;fontColor=#d79b00;fontStyle=2;" vertex="1" parent="sw-backend">
+          <mxGeometry x="210" y="155" width="900" height="18" as="geometry" />
+        </mxCell>
+
+        <!-- Swimlane: LangGraph Engine -->
+        <mxCell id="sw-graph" value="③ LangGraph 引擎  ·  app/graph/workflow.py  +  subgraphs/topic_selection.py  +  nodes/*  ·  State = AgentState(TypedDict)" style="swimlane;startSize=30;horizontal=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=12;html=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="484" width="1760" height="470" as="geometry" />
+        </mxCell>
+        <!-- Subgraph container -->
+        <mxCell id="g-subgraph" value="子图 topic_selection  (复用 AgentState，无单独 checkpointer)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1f0e1;strokeColor=#82b366;strokeWidth=1.5;dashed=1;fontSize=11;fontStyle=1;" vertex="1" parent="sw-graph">
+          <mxGeometry x="30" y="50" width="430" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="g-plan" value="plan_topics&#xa;llm_fast 结构化输出&#xa;TopicsResponse&#xa;MetricsContext" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;" vertex="1" parent="sw-graph">
+          <mxGeometry x="60" y="95" width="150" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="g-human-select" value="human_select_topic&#xa;interrupt({&#xa;  select_topic, options })&#xa;→ Command(goto=END)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;strokeWidth=2;" vertex="1" parent="sw-graph">
+          <mxGeometry x="270" y="95" width="160" height="80" as="geometry" />
+        </mxCell>
+        <!-- Main graph nodes -->
+        <mxCell id="g-retrieve" value="retrieve&#xa;RAG Top-3 注入&#xa;失败→空列表降级" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="sw-graph">
+          <mxGeometry x="520" y="85" width="140" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="g-writer" value="write_draft&#xa;llm 标准模型&#xa;stream_write_draft_with_usage&#xa;revision_count++" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;strokeWidth=1.5;" vertex="1" parent="sw-graph">
+          <mxGeometry x="700" y="75" width="170" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="g-evaluator" value="evaluate&#xa;LLM 自评&#xa;relevance/readability&#xa;depth/originality" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;" vertex="1" parent="sw-graph">
+          <mxGeometry x="910" y="85" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="g-human-review" value="是否通过审核？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;" vertex="1" parent="sw-graph">
+          <mxGeometry x="1100" y="85" width="160" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="g-interrupt2" value="human_review&#xa;interrupt({ review,&#xa;  article_preview })" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;strokeWidth=2;" vertex="1" parent="sw-graph">
+          <mxGeometry x="1105" y="210" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="g-visual" value="extract_visuals&#xa;llm_extract&#xa;提炼 3 个配图文案" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;" vertex="1" parent="sw-graph">
+          <mxGeometry x="1340" y="85" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="g-images" value="generate_images&#xa;OpenAI 兼容生图&#xa;image_urls[]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;" vertex="1" parent="sw-graph">
+          <mxGeometry x="1530" y="85" width="140" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="g-end" value="END&#xa;completed" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=11;" vertex="1" parent="sw-graph">
+          <mxGeometry x="1535" y="210" width="130" height="60" as="geometry" />
+        </mxCell>
+        <!-- State whiteboard -->
+        <mxCell id="g-state" value="白板 AgentState&#xa;topic_direction → generated_topics → selected_topic → retrieved_docs → article_content → quality_score → review_status → visual_points → image_urls&#xa;+ status / node_metrics / model_config / revision_count" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;strokeWidth=1;dashed=1;" vertex="1" parent="sw-graph">
+          <mxGeometry x="30" y="350" width="1640" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="g-build-note" value="build_workflow_graph():  START → topic_selection → retrieve → write_draft → evaluate → human_review ─┬─ approve → extract_visuals → generate_images → END&#xa;                                                                                                                             └─ reject  → write_draft (环)" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=10;fontColor=#2d6a2d;fontStyle=2;" vertex="1" parent="sw-graph">
+          <mxGeometry x="30" y="415" width="1640" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Swimlane: Persistence -->
+        <mxCell id="sw-persist" value="④ 持久化层  ·  app/graph/utils.py  ·  AsyncPostgresSaver / MemorySaver  ·  PostgreSQL 15 + psycopg3 + AsyncConnectionPool" style="swimlane;startSize=30;horizontal=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=12;html=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="954" width="1760" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="p-pg" value="PostgreSQL&#xa;checkpoints&#xa;checkpoint_writes&#xa;checkpoint_blobs&#xa;thread_names" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;" vertex="1" parent="sw-persist">
+          <mxGeometry x="60" y="50" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p-saver" value="AsyncPostgresSaver(pool)&#xa;pool: min1 / max10&#xa;setup() 建表 + 校验" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;" vertex="1" parent="sw-persist">
+          <mxGeometry x="280" y="50" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p-memory" value="MemorySaver (降级)&#xa;仅内存 dict&#xa;重启丢失 · 仅开发" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;dashed=1;" vertex="1" parent="sw-persist">
+          <mxGeometry x="520" y="50" width="160" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p-thread" value="thread_id 隔离&#xa;verify_thread_owner()&#xa;LIKE '{user.id}_%' 过滤" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="sw-persist">
+          <mxGeometry x="750" y="50" width="160" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p-history" value="aget_state_history()&#xa;最近20条快照&#xa;get_all_threads() 列表" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=11;" vertex="1" parent="sw-persist">
+          <mxGeometry x="980" y="50" width="160" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p-cross" value="跨会话恢复&#xa;服务重启→从 PG 读快照&#xa;中断点继续执行" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="sw-persist">
+          <mxGeometry x="1210" y="50" width="160" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p-langsmith" value="LangSmith&#xa;LANGCHAIN_TRACING_V2&#xa;自动上报 token/耗时" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;dashed=1;" vertex="1" parent="sw-persist">
+          <mxGeometry x="1440" y="50" width="150" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Cross-swimlane edges: Frontend <-> Backend -->
+        <mxCell id="e-f-b1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#6c8ebf;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0.5;entryY=0;" edge="1" parent="1" source="f-btn-start" target="b-start">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-b-f1" value="interrupt_info" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#d6b656;dashed=1;strokeWidth=1.2;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="b-ainvoke" target="f-card-topic">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-f-b2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#b85450;strokeWidth=1.2;exitX=1;exitY=0.5;entryX=0.5;entryY=0;" edge="1" parent="1" source="f-resume-topic" target="b-command">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-b-sse" value="token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;strokeWidth=1.2;dashed=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="b-sse" target="f-sse">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-b-f2" value="interrupt_info" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#b85450;dashed=1;strokeWidth=1.2;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="b-state" target="f-card-review">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-f-b3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#6c8ebf;strokeWidth=1.2;exitX=0.5;exitY=1;entryX=1;entryY=0.5;" edge="1" parent="1" source="f-resume-review" target="b-command">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1440" y="380" />
+              <mxPoint x="965" y="380" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Backend -> Graph edges -->
+        <mxCell id="e-b-g1" value="compile" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#d79b00;strokeWidth=1.2;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="b-getgraph" target="g-plan">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-b-g2" value="ainvoke" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#d79b00;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.25;entryY=0;" edge="1" parent="1" source="b-ainvoke" target="g-plan">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-b-g3" value="Command" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#b85450;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="b-command" target="g-human-select">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Graph internal edges -->
+        <mxCell id="e-g1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;strokeWidth=1.2;" edge="1" parent="1" source="g-plan" target="g-human-select">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-g2" value="END→主图" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;strokeWidth=1.2;dashed=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="g-human-select" target="g-retrieve">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-g3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="g-retrieve" target="g-writer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-g4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="g-writer" target="g-evaluator">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-g5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="g-evaluator" target="g-human-review">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-g6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#b85450;strokeWidth=1.2;dashed=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="g-human-review" target="g-interrupt2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-g7" value="approve" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="g-interrupt2" target="g-visual">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1330" y="245" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-g8" value="reject→重写" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#b85450;strokeWidth=1.8;exitX=0;exitY=0.5;entryX=0.5;entryY=1;" edge="1" parent="1" source="g-interrupt2" target="g-writer">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="860" y="245" />
+              <mxPoint x="860" y="650" />
+              <mxPoint x="785" y="650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-g9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="g-visual" target="g-images">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-g10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#82b366;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="g-images" target="g-end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Persistence edges -->
+        <mxCell id="e-p1" value="序列化快照" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#666666;strokeWidth=1.2;dashed=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="g-human-select" target="p-saver">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="920" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-p2" value="快照" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;strokeColor=#666666;strokeWidth=1.2;dashed=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="g-interrupt2" target="p-pg">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="135" y="920" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend" value="图例" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1135" width="1760" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-blue" value="" style="rounded=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="legend">
+          <mxGeometry x="20" y="18" width="28" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-blue-t" value="前端 / 接口" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;" vertex="1" parent="legend">
+          <mxGeometry x="55" y="16" width="110" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-orange" value="" style="rounded=1;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="legend">
+          <mxGeometry x="170" y="18" width="28" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-orange-t" value="后端 FastAPI" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;" vertex="1" parent="legend">
+          <mxGeometry x="205" y="16" width="110" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-green" value="" style="rounded=1;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="legend">
+          <mxGeometry x="320" y="18" width="28" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-green-t" value="LangGraph 节点/SSE" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;" vertex="1" parent="legend">
+          <mxGeometry x="355" y="16" width="130" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-yellow" value="" style="rhombus;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="legend">
+          <mxGeometry x="490" y="15" width="30" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-yellow-t" value="条件路由" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;" vertex="1" parent="legend">
+          <mxGeometry x="527" y="16" width="80" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-pink" value="" style="rounded=1;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="legend">
+          <mxGeometry x="615" y="18" width="28" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-pink-t" value="interrupt 中断点" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;" vertex="1" parent="legend">
+          <mxGeometry x="650" y="16" width="110" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-grey" value="" style="shape=cylinder3;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="legend">
+          <mxGeometry x="765" y="14" width="30" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-grey-t" value="持久化" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;" vertex="1" parent="legend">
+          <mxGeometry x="802" y="16" width="70" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-dashed" value="┄┄ 虚线 = 跨层/异步 / 恢复" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontColor=#666666;fontStyle=2;" vertex="1" parent="legend">
+          <mxGeometry x="880" y="16" width="220" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-red" value="━━━━ 红色粗线 = 驳回重写环（重点）" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontColor=#b85450;fontStyle=1;" vertex="1" parent="legend">
+          <mxGeometry x="1110" y="16" width="260" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-files" value="关键文件： workflow.py  ·  subgraphs/topic_selection.py  ·  nodes/{planner,retriever,writer,evaluator,visualizer}.py  ·  graph/utils.py  ·  core/callbacks.py(pii)" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontColor=#666666;" vertex="1" parent="legend">
+          <mxGeometry x="1380" y="16" width="360" height="18" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
